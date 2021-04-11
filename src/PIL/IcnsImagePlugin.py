@@ -105,6 +105,7 @@ def read_png_or_jpeg2000(fobj, start_length, size):
     if sig[:8] == b"\x89PNG\x0d\x0a\x1a\x0a":
         fobj.seek(start)
         im = PngImagePlugin.PngImageFile(fobj)
+        Image._decompression_bomb_check(im.size)
         return {"RGBA": im}
     elif (
         sig[:4] == b"\xff\x4f\xff\x51"
@@ -121,6 +122,7 @@ def read_png_or_jpeg2000(fobj, start_length, size):
         jp2kstream = fobj.read(length)
         f = io.BytesIO(jp2kstream)
         im = Jpeg2KImagePlugin.Jpeg2KImageFile(f)
+        Image._decompression_bomb_check(im.size)
         if im.mode != "RGBA":
             im = im.convert("RGBA")
         return {"RGBA": im}
@@ -357,7 +359,11 @@ def _save(im, fp, filename):
                 fp.write(f.read())
 
 
-Image.register_open(IcnsImageFile.format, IcnsImageFile, lambda x: x[:4] == b"icns")
+def _accept(prefix):
+    return prefix[:4] == b"icns"
+
+
+Image.register_open(IcnsImageFile.format, IcnsImageFile, _accept)
 Image.register_extension(IcnsImageFile.format, ".icns")
 
 if sys.platform == "darwin":

@@ -199,7 +199,7 @@ _setimage(ImagingDecoderObject *decoder, PyObject *args) {
             state->bytes = (state->bits * state->xsize + 7) / 8;
         }
         /* malloc check ok, overflow checked above */
-        state->buffer = (UINT8 *)malloc(state->bytes);
+        state->buffer = (UINT8 *)calloc(1, state->bytes);
         if (!state->buffer) {
             return ImagingError_MemoryError();
         }
@@ -430,7 +430,8 @@ PyImaging_GifDecoderNew(PyObject *self, PyObject *args) {
     char *mode;
     int bits = 8;
     int interlace = 0;
-    if (!PyArg_ParseTuple(args, "s|ii", &mode, &bits, &interlace)) {
+    int transparency = -1;
+    if (!PyArg_ParseTuple(args, "s|iii", &mode, &bits, &interlace, &transparency)) {
         return NULL;
     }
 
@@ -448,6 +449,7 @@ PyImaging_GifDecoderNew(PyObject *self, PyObject *args) {
 
     ((GIFDECODERSTATE *)decoder->state.context)->bits = bits;
     ((GIFDECODERSTATE *)decoder->state.context)->interlace = interlace;
+    ((GIFDECODERSTATE *)decoder->state.context)->transparency = transparency;
 
     return (PyObject *)decoder;
 }
